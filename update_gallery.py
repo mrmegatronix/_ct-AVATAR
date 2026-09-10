@@ -1,5 +1,14 @@
 import os
 
+# Load configuration from .env if it exists
+gallery_password = "Meatheads" # Fallback
+if os.path.exists(".env"):
+    with open(".env", "r") as f:
+        for line in f:
+            if line.startswith("GALLERY_PASSWORD="):
+                gallery_password = line.strip().split("=", 1)[1]
+                break
+
 media_dir = '_media'
 files = os.listdir(media_dir)
 media_files = [f for f in files if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.mp4', '.webm'))]
@@ -61,7 +70,7 @@ html_template = """<!DOCTYPE html>
     document.body.style.display = 'block';
     
     function checkPassword() {
-        if (document.getElementById('pw-input').value === 'Meatheads') {
+        if (document.getElementById('pw-input').value === '{GALLERY_PASSWORD}') {
             document.getElementById('password-screen').style.display = 'none';
             document.getElementById('gallery-screen').style.display = 'block';
         } else {
@@ -87,7 +96,6 @@ html_template = """<!DOCTYPE html>
             grid.insertBefore(card, grid.firstChild);
         }
         
-        // Brief delay to allow rendering before alert
         setTimeout(() => {
             alert("Media added to preview! \\n\\nTo save these permanently to the live site:\\n1. Save files to the '_media' folder.\\n2. Run 'python update_gallery.py'.\\n3. Push to GitHub.");
         }, 100);
@@ -105,7 +113,7 @@ for f in media_files:
     else:
         media_html += f'<div class="card"><img src="_media/{f}" loading="lazy" alt="{f}"></div>\n'
 
-html_content = html_template.replace('{MEDIA_HTML}', media_html)
+html_content = html_template.replace('{MEDIA_HTML}', media_html).replace('{GALLERY_PASSWORD}', gallery_password)
 
 with open('index.html', 'w') as f:
     f.write(html_content)
